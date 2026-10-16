@@ -1,0 +1,192 @@
+<% layout("/layouts/boilerplate") %>
+
+
+<!-- Custom styles for two-column layout with a vertical divider -->
+<style>
+  /* Full-page background image */
+  body {
+    background: url("https://sawasdee.thaiairways.com/wp-content/uploads/2025/02/MarEN3-0-e1740667407439-1160x775.jpg") no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Main container for both columns */
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 50px); /* Adjust if you have a nav bar of height 50px */
+    padding: 20px;
+  }
+  
+  /* Wrapper for login form and right-side text with a divider */
+  .login-wrapper {
+    display: flex;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 1000px;
+  }
+  
+  /* Left column: Login form */
+  .login-card {
+    flex: 1;
+    padding: 40px 60px;
+  }
+  
+  .login-card h3 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 700;
+    color: #fff;
+  }
+  
+  .form-label {
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.2);
+    margin-bottom: 1rem;
+    padding: 1rem 1.5rem;
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  
+  .form-control::placeholder {
+    color: #fff;
+    opacity: 0.7;
+  }
+  
+  .btn-custom {
+    width: 100%;
+    margin-top: 20px;
+    font-weight: 600;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    color: #fff;
+    padding: 0.75rem;
+    border-radius: 5px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Vertical divider between the two columns */
+  .divider {
+    width: 2px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Right column: Informative text about Stahub */
+  .login-text {
+    flex: 1;
+    padding: 40px 60px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .login-text h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+  
+  .login-text p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+  
+  /* Social icons row */
+  .social-icons {
+    display: flex;
+    gap: 1rem;
+    font-size: 1.4rem;
+  }
+  .social-icons a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .social-icons a:hover {
+    color: #f2f2f2;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .login-wrapper {
+      flex-direction: column;
+    }
+    .divider {
+      display: none;
+    }
+    .login-card, .login-text {
+      padding: 20px;
+      text-align: center;
+    }
+    .login-text h1 {
+      font-size: 1.8rem;
+    }
+  }
+</style>
+
+<div class="login-container">
+  <div class="login-wrapper">
+    <!-- Left: Login Form -->
+    <div class="login-card">
+      <h3>Login</h3>
+      <form action="/login" method="POST" novalidate class="needs-validation">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            class="form-control"
+            placeholder="Enter your username"
+            required
+          >
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            class="form-control"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+        <button type="submit" class="btn btn-success btn-custom">Login</button>
+      </form>
+    </div>
+    
+    <!-- Divider -->
+    <div class="divider"></div>
+    
+    <!-- Right: Stahub-Related Text & Social Icons -->
+    <div class="login-text">
+      <h1>THE GOAL OF LIFE IS LIVING IN AGREEMENT WITH NATURE.</h1>
+      <p>
+        At Stahub, we connect travelers with eco-friendly hotels, villas, and more—
+        ensuring every journey treads lightly on our planet. Explore, discover,
+        and experience nature’s wonders with us.
+      </p>
+      
+    </div>
+  </div>
+</div>

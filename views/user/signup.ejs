@@ -1,0 +1,153 @@
+<% layout("/layouts/boilerplate") %>
+
+<!-- Video Background -->
+<video autoplay loop muted playsinline id="bg-video">
+  <source src="/images/5155396-uhd_2560_1440_30fps.mp4" type="video/mp4" />
+  Your browser does not support HTML5 video.
+</video>
+
+<!-- Custom Styling -->
+<style>
+  /* Full-page video background */
+  #bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1; /* Sends video behind content */
+  }
+
+  /* General styling */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+  }
+
+  /* Centered container */
+  .signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Main card container */
+  .signup-card {
+    display: flex;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    flex-direction: row-reverse;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+  }
+
+  /* Form styling */
+  .signup-form {
+    flex: 1;
+    padding: 3rem;
+  }
+
+  .signup-form h3 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Floating input fields */
+  .floating-label-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .floating-label-group input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 1rem;
+    color: #fff;
+    backdrop-filter: blur(10px);
+  }
+
+  .floating-label-group label {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    transition: 0.3s;
+  }
+
+  .floating-label-group input:focus ~ label,
+  .floating-label-group input:not(:placeholder-shown) ~ label {
+    top: 10px;
+    font-size: 0.8rem;
+    color: #00c6ff;
+  }
+
+  /* Signup Button */
+  .btn-signup {
+    width: 100%;
+    padding: 0.8rem;
+    background: linear-gradient(45deg, #843db9, #00c6ff);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 198, 255, 0.2);
+  }
+
+  .btn-signup:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 198, 255, 0.4);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .signup-card {
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+    }
+  }
+</style>
+
+<!-- Signup Page Layout -->
+<div class="signup-container">
+  <div class="signup-card">
+    <div class="signup-form">
+      <h3>Sign Up on StayHub</h3>
+      <form action="/signup" method="post" novalidate class="needs-validation">
+        <div class="floating-label-group">
+          <input type="text" name="username" placeholder=" " required />
+          <label>Username</label>
+        </div>
+        <div class="floating-label-group">
+          <input type="text" name="email" placeholder=" " required />
+          <label>Email</label>
+        </div>
+        <div class="floating-label-group">
+          <input type="password" name="password" placeholder=" " required />
+          <label>Password</label>
+        </div>
+        <button type="submit" class="btn-signup">Sign Up</button>
+      </form>
+    </div>
+  </div>
+</div>
