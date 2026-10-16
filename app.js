@@ -7,6 +7,7 @@ const app = express();
 const mongoose = require("mongoose");
 const methodoverride = require("method-override");
 const path = require("path");
+const fs = require("fs");
 const ExpressError = require("./utils/ExpressError.js");
 const ejsMate = require("ejs-mate");
 const listings = require("./models/listing.js");
@@ -15,6 +16,7 @@ const categoryRouter = require("./routes/category.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const searchRouter = require("./routes/search.js");
+const apiRouter = require("./routes/api.js");
 
 const session = require("express-session");
 const MongoStore = require('connect-mongo');
@@ -33,6 +35,7 @@ app.use(methodoverride("_method"));
 app.set("views", path.join(__dirname, "views"));
 app.set("viewengine", "ejs");
 
+app.use(express.json());
 app.use(express.urlencoded({ extends: true }));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "public")));
@@ -103,6 +106,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api", apiRouter);
 app.use("/listings", ListingRouter);
 app.use("/listings/:id", reviewRouter);
 app.use("/", userRouter);
@@ -110,6 +114,15 @@ app.use("/", categoryRouter);
 app.use("/search", searchRouter);
 app.use("/booking", bookingRoutes);
 app.use("/profile", profileRoutes);
+
+// Coexistence: Serve React production build at / while keeping EJS at /listings
+const clientDistPath = path.join(__dirname, "client", "dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 main()
   .then(() => {
@@ -127,9 +140,10 @@ app.all("*", (req, res, next) => {
 
 app.use((err, req, res, next) => {
   let { statusCode = 404, message = "page Not Found" } = err;
+  if (req.originalUrl && req.originalUrl.startsWith("/api")) {
+    return res.status(statusCode).json({ success: false, message });
+  }
   res.status(statusCode).render("error.ejs", { message });
-
-  next();
 });
 
 app.listen(3003, (req, res) => {
