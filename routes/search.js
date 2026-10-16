@@ -7,8 +7,12 @@ const listings = require("../models/listing");
 
 
 
-router.post("/", wrapAsync(async(req, res) => {
-    const nameQuery = (req.body.search || "").trim();
+const handleSearch = wrapAsync(async (req, res) => {
+    const nameQuery = (req.body.search || req.query.search || "").trim();
+    if (!nameQuery) {
+        const results = await listings.find({});
+        return res.render("listings/search.ejs", { results, searchQuery: "" });
+    }
     const escaped = nameQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
     const searchRegex = new RegExp(escaped, "i");
     const results = await listings.find({
@@ -21,8 +25,12 @@ router.post("/", wrapAsync(async(req, res) => {
             { features: searchRegex },
         ]
     });
-    res.render("listings/search.ejs", { results });
-}));
+    res.render("listings/search.ejs", { results, searchQuery: nameQuery });
+});
+
+router.route("/")
+    .get(handleSearch)
+    .post(handleSearch);
 
 
 

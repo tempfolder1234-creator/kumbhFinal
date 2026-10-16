@@ -148,31 +148,56 @@
     <!-- Left: Login Form -->
     <div class="login-card">
       <h3>Login</h3>
-      <form action="/login" method="POST" novalidate class="needs-validation">
+      <form action="/login" method="POST" id="loginForm" novalidate class="needs-validation">
         <div class="mb-3">
-          <label for="username" class="form-label">Username</label>
+          <label for="username" class="form-label">Username or Email</label>
           <input
             type="text"
             name="username"
             id="username"
             class="form-control"
-            placeholder="Enter your username"
+            placeholder="Enter your username or email"
             required
           >
         </div>
-        <div class="mb-3">
+        <div class="mb-3" style="position: relative;">
           <label for="password" class="form-label">Password</label>
           <input
             type="password"
             name="password"
-            id="password"
+            id="loginPassword"
             class="form-control"
             placeholder="Enter your password"
             required
           >
+          <button 
+            type="button" 
+            id="toggleLoginPassword" 
+            style="position: absolute; right: 15px; top: 48px; background: none; border: none; color: #fff; cursor: pointer; font-size: 14px;"
+            tabindex="-1"
+          >
+            Show
+          </button>
         </div>
         <button type="submit" class="btn btn-success btn-custom">Login</button>
       </form>
+      <script>
+        (function() {
+          const pass = document.getElementById("loginPassword");
+          const btn = document.getElementById("toggleLoginPassword");
+          if (pass && btn) {
+            btn.addEventListener("click", function() {
+              if (pass.type === "password") {
+                pass.type = "text";
+                btn.textContent = "Hide";
+              } else {
+                pass.type = "password";
+                btn.textContent = "Show";
+              }
+            });
+          }
+        })();
+      </script>
     </div>
     
     <!-- Divider -->

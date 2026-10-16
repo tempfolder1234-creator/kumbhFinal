@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-import { X, LogIn, UserPlus } from "lucide-react";
+import { X, LogIn, UserPlus, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+
+export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{}|;:,.<>])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{}|;:,.<>]{8,}$/;
 
 export default function AuthModal({ initialMode = "login", onClose, onSuccess }) {
   const { login, signup } = useAuth();
@@ -8,19 +11,54 @@ export default function AuthModal({ initialMode = "login", onClose, onSuccess })
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  // Live Password Criteria Calculations
+  const hasMinLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[@$!%*?&#^()_+\-=\[\]{}|;:,.<>]/.test(password);
+
+  const criteriaMetCount = [hasMinLength, hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+  const isStrongPassword = STRONG_PASSWORD_REGEX.test(password);
+  const isEmailValid = EMAIL_REGEX.test(email.trim());
+
+  const getStrengthLabel = () => {
+    if (!password) return { text: "", color: "" };
+    if (criteriaMetCount <= 2) return { text: "Weak", color: "#E53E3E" };
+    if (criteriaMetCount <= 4) return { text: "Medium", color: "#DD6B20" };
+    return { text: "Strong", color: "#38A169" };
+  };
+
+  const strength = getStrengthLabel();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (mode === "signup") {
+      if (!isEmailValid) {
+        setError("Please enter a valid email address (e.g. name@example.com)");
+        return;
+      }
+      if (!isStrongPassword) {
+        setError("Password does not meet strong security requirements. See checklist below.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (mode === "login") {
         await login({ username, password });
       } else {
-        await signup({ username, email, password });
+        await signup({ username: username.trim(), email: email.trim(), password });
       }
       if (onSuccess) onSuccess();
       onClose();
@@ -64,16 +102,23 @@ export default function AuthModal({ initialMode = "login", onClose, onSuccess })
           </p>
         </div>
 
-        {error && <div className="sh-alert-error">{error}</div>}
+        {error && (
+          <div className="sh-alert-error" style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
+            <span>{error}</span>
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="sh-auth-form">
+        <form onSubmit={handleSubmit} className="sh-auth-form" noValidate>
           <div className="sh-form-group">
-            <label className="sh-label" htmlFor="auth-username">Username</label>
+            <label className="sh-label" htmlFor="auth-username">
+              {mode === "login" ? "Username or Email" : "Username"}
+            </label>
             <input
               id="auth-username"
               type="text"
               required
-              placeholder="Enter your username"
+              placeholder={mode === "login" ? "Enter username or email" : "Choose a unique username"}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="sh-input"
@@ -82,37 +127,102 @@ export default function AuthModal({ initialMode = "login", onClose, onSuccess })
 
           {mode === "signup" && (
             <div className="sh-form-group">
-              <label className="sh-label" htmlFor="auth-email">Email Address</label>
+              <label className="sh-label" htmlFor="auth-email">
+                Email Address
+              </label>
               <input
                 id="auth-email"
                 type="email"
                 required
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="sh-input"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (!emailTouched) setEmailTouched(true);
+                }}
+                onBlur={() => setEmailTouched(true)}
+                className={`sh-input ${emailTouched && email && !isEmailValid ? "sh-input-invalid" : ""}`}
               />
+              {emailTouched && email && !isEmailValid && (
+                <span className="sh-field-hint sh-hint-error">
+                  Please enter a valid email address (e.g. name@domain.com)
+                </span>
+              )}
             </div>
           )}
 
           <div className="sh-form-group">
             <label className="sh-label" htmlFor="auth-password">Password</label>
-            <input
-              id="auth-password"
-              type="password"
-              required
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="sh-input"
-            />
+            <div className="sh-password-input-wrap">
+              <input
+                id="auth-password"
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder={mode === "login" ? "Enter your password" : "Create a strong password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (!passwordTouched) setPasswordTouched(true);
+                }}
+                onBlur={() => setPasswordTouched(true)}
+                className={`sh-input ${mode === "signup" && passwordTouched && password && !isStrongPassword ? "sh-input-invalid" : ""}`}
+              />
+              <button
+                type="button"
+                className="sh-password-toggle-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            {/* In Signup mode, show Live Password Strength Indicator & Checklist */}
+            {mode === "signup" && password && (
+              <div className="sh-password-feedback">
+                <div className="sh-strength-bar-wrap">
+                  <div className="sh-strength-bar">
+                    <div 
+                      className="sh-strength-fill" 
+                      style={{ 
+                        width: `${(criteriaMetCount / 5) * 100}%`,
+                        backgroundColor: strength.color 
+                      }} 
+                    />
+                  </div>
+                  <span className="sh-strength-label" style={{ color: strength.color }}>
+                    {strength.text}
+                  </span>
+                </div>
+
+                <div className="sh-criteria-list">
+                  <div className={`sh-criteria-item ${hasMinLength ? "met" : ""}`}>
+                    <Check size={13} strokeWidth={3} />
+                    <span>8+ characters</span>
+                  </div>
+                  <div className={`sh-criteria-item ${hasUpper && hasLower ? "met" : ""}`}>
+                    <Check size={13} strokeWidth={3} />
+                    <span>Upper &amp; lowercase letters</span>
+                  </div>
+                  <div className={`sh-criteria-item ${hasNumber ? "met" : ""}`}>
+                    <Check size={13} strokeWidth={3} />
+                    <span>At least 1 number (0-9)</span>
+                  </div>
+                  <div className={`sh-criteria-item ${hasSpecial ? "met" : ""}`}>
+                    <Check size={13} strokeWidth={3} />
+                    <span>1 special symbol (@$!%*?&#)</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
             className="sh-btn sh-btn-primary sh-btn-lg"
-            style={{ width: "100%", marginTop: "8px" }}
+            style={{ width: "100%", marginTop: "12px" }}
           >
             {loading ? "Processing..." : (mode === "login" ? "Log In" : "Create Account")}
           </button>
@@ -184,6 +294,112 @@ export default function AuthModal({ initialMode = "login", onClose, onSuccess })
         .sh-auth-header p {
           font-size: 0.875rem;
           color: var(--sh-text-secondary);
+        }
+
+        .sh-password-input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .sh-password-toggle-btn {
+          position: absolute;
+          right: 12px;
+          background: none;
+          border: none;
+          color: var(--sh-text-secondary);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          border-radius: var(--sh-radius-sm);
+          transition: color var(--sh-transition-fast);
+        }
+
+        .sh-password-toggle-btn:hover {
+          color: var(--sh-text-primary);
+        }
+
+        .sh-input-invalid {
+          border-color: #E53E3E !important;
+          background-color: #FFF5F5 !important;
+        }
+
+        .sh-field-hint {
+          display: block;
+          font-size: 0.775rem;
+          margin-top: 5px;
+        }
+
+        .sh-hint-error {
+          color: #E53E3E;
+          font-weight: 500;
+        }
+
+        /* Password Strength Indicator */
+        .sh-password-feedback {
+          margin-top: 10px;
+          padding: 10px 12px;
+          background: #F7FAFC;
+          border-radius: var(--sh-radius-md);
+          border: 1px solid var(--sh-border-light);
+        }
+
+        .sh-strength-bar-wrap {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+
+        .sh-strength-bar {
+          flex: 1;
+          height: 6px;
+          background: #E2E8F0;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .sh-strength-fill {
+          height: 100%;
+          transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .sh-strength-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .sh-criteria-list {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+        }
+
+        .sh-criteria-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.75rem;
+          color: #A0AEC0;
+          transition: color var(--sh-transition-fast);
+        }
+
+        .sh-criteria-item svg {
+          stroke: #CBD5E0;
+          transition: stroke var(--sh-transition-fast);
+        }
+
+        .sh-criteria-item.met {
+          color: #2F855A;
+          font-weight: 600;
+        }
+
+        .sh-criteria-item.met svg {
+          stroke: #38A169;
         }
 
         .sh-auth-divider {

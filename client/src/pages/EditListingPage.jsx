@@ -26,19 +26,32 @@ const AVAILABLE_FEATURES = [
 ];
 
 export default function EditListingPage({ listing, onBack, onSuccess }) {
-  const [title, setTitle] = useState(listing.title || "");
-  const [description, setDescription] = useState(listing.description || "");
-  const [price, setPrice] = useState(listing.price || "");
-  const [location, setLocation] = useState(listing.location || "");
-  const [country, setCountry] = useState(listing.country || "India");
-  const [category, setCategory] = useState(listing.category || "Trending");
-  const [selectedFeatures, setSelectedFeatures] = useState(listing.features || []);
+  if (!listing) {
+    return (
+      <div className="sh-container" style={{ padding: "80px 24px", textAlign: "center" }}>
+        <h3>Accommodation not found</h3>
+        <p style={{ marginTop: "8px", marginBottom: "20px" }}>No property data was provided to edit.</p>
+        <button className="sh-btn sh-btn-secondary" onClick={onBack}>
+          <ArrowLeft size={16} />
+          <span>Back to properties</span>
+        </button>
+      </div>
+    );
+  }
+
+  const [title, setTitle] = useState(listing?.title || "");
+  const [description, setDescription] = useState(listing?.description || "");
+  const [price, setPrice] = useState(listing?.price !== undefined ? listing.price : "");
+  const [location, setLocation] = useState(listing?.location || "");
+  const [country, setCountry] = useState(listing?.country || "India");
+  const [category, setCategory] = useState(listing?.category || "Trending");
+  const [selectedFeatures, setSelectedFeatures] = useState(listing?.features || []);
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const originalImageUrl = listing.image ? listing.image.url : "";
+  const originalImageUrl = listing?.image ? listing.image.url : "";
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -267,6 +280,147 @@ export default function EditListingPage({ listing, onBack, onSuccess }) {
           </button>
         </div>
       </form>
+
+      <style>{`
+        .sh-form-page {
+          max-width: 780px;
+          padding: 32px 24px 80px;
+        }
+
+        .sh-form-header {
+          margin-bottom: 28px;
+        }
+
+        .sh-form-header h1 {
+          font-size: 1.8rem;
+          margin-top: 12px;
+          margin-bottom: 6px;
+        }
+
+        .sh-form-header p {
+          color: var(--sh-text-secondary);
+        }
+
+        .sh-listing-form {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .sh-form-card {
+          background: #FFFFFF;
+          border: 1px solid var(--sh-border-light);
+          border-radius: var(--sh-radius-xl);
+          padding: 28px;
+          box-shadow: var(--sh-shadow-card);
+        }
+
+        .sh-form-card h3 {
+          font-size: 1.15rem;
+          margin-bottom: 16px;
+        }
+
+        .sh-form-row {
+          display: flex;
+          gap: 16px;
+        }
+
+        .sh-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 16px;
+        }
+
+        .sh-form-group:last-child {
+          margin-bottom: 0;
+        }
+
+        .sh-drop-label {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: background-color var(--sh-transition-fast), border-color var(--sh-transition-fast);
+        }
+
+        .sh-drop-label:hover {
+          background-color: var(--sh-bg-subtle);
+          border-color: var(--sh-primary) !important;
+        }
+
+        .sh-file-input {
+          display: none;
+        }
+
+        .sh-features-checklist {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 12px;
+        }
+
+        .sh-feature-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: var(--sh-bg-subtle);
+          border: 1px solid var(--sh-border-light);
+          padding: 10px 14px;
+          border-radius: var(--sh-radius-md);
+          cursor: pointer;
+          text-align: left;
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: var(--sh-text-primary);
+          transition: all var(--sh-transition-fast);
+        }
+
+        .sh-feature-checkbox:hover {
+          border-color: var(--sh-border);
+          background: #FFFFFF;
+        }
+
+        .sh-feature-checkbox.checked {
+          background: var(--sh-primary-light);
+          border-color: var(--sh-primary);
+          color: var(--sh-primary);
+        }
+
+        .sh-check-box {
+          width: 18px;
+          height: 18px;
+          border-radius: 4px;
+          border: 1.5px solid var(--sh-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--sh-transition-fast);
+        }
+
+        .sh-check-box.checked {
+          background: var(--sh-primary);
+          border-color: var(--sh-primary);
+        }
+
+        .sh-form-footer {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 16px;
+          padding-top: 12px;
+        }
+
+        @media (max-width: 640px) {
+          .sh-form-row {
+            flex-direction: column;
+          }
+          .sh-features-checklist {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </div>
   );
 }

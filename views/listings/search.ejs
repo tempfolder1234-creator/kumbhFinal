@@ -2,24 +2,29 @@
 
 
 <% if (results && results.length > 0) { %>
-
     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
         <% for(let listing of results){ %>
             <a href="/listings/<%= listing._id %>" class="card-link">
                 <div class="card col listing-card">
-                    <img class="card-img-top" src="<%= (listing.image && listing.image.url) ? listing.image.url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60' %>" alt="Card image cap" style=" height:
-                        18rem;">
+                    <img class="card-img-top" src="<%= (listing.image && listing.image.url) ? listing.image.url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60' %>" alt="Card image cap" style="height: 18rem;">
                     <div class="card-body">
                         <p class="card-text-title">
                             <%= listing.title%>
                         </p>
-                        <!-- <p class="card-text"><%= listing.description%></p> -->
                         <p class="card-text"><i class="fa fa-inr"></i>
-                            <%= listing.price.toLocaleString("en-IN")%>
-                                <i class="tax-info"> &nbsp; &nbsp; +18% GST</i>
+                            <%= listing.price ? Number(listing.price).toLocaleString("en-IN") : "0" %>
+                            <i class="tax-info"> &nbsp; &nbsp; +18% GST</i>
                         </p>
                     </div>
                 </div>
-            <%}%>
+            </a>
+        <% } %>
     </div>
-    <%}%>
+<% } else { %>
+    <div class="text-center py-5 my-5">
+        <i class="fa-solid fa-magnifying-glass fa-3x text-muted mb-3"></i>
+        <h3>No accommodations found</h3>
+        <p class="text-muted">We couldn't find any results matching your search<%= typeof searchQuery !== 'undefined' && searchQuery ? ` "${searchQuery}"` : '' %>.</p>
+        <a href="/listings" class="btn btn-primary mt-2">Explore All Listings</a>
+    </div>
+<% } %>

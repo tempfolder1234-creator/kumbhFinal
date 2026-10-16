@@ -133,21 +133,155 @@
   <div class="signup-card">
     <div class="signup-form">
       <h3>Sign Up on StayHub</h3>
-      <form action="/signup" method="post" novalidate class="needs-validation">
+      <form action="/signup" method="post" id="signupForm" novalidate class="needs-validation">
         <div class="floating-label-group">
-          <input type="text" name="username" placeholder=" " required />
-          <label>Username</label>
+          <input type="text" name="username" id="username" placeholder=" " required minlength="3" />
+          <label for="username">Username</label>
         </div>
         <div class="floating-label-group">
-          <input type="text" name="email" placeholder=" " required />
-          <label>Email</label>
+          <input 
+            type="email" 
+            name="email" 
+            id="email" 
+            placeholder=" " 
+            required 
+            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            title="Please enter a valid email address (e.g. user@example.com)"
+          />
+          <label for="email">Email Address</label>
+          <div id="emailFeedback" class="text-danger small mt-1" style="display: none;">
+            Please enter a valid email address (e.g. name@domain.com)
+          </div>
         </div>
-        <div class="floating-label-group">
-          <input type="password" name="password" placeholder=" " required />
-          <label>Password</label>
+        <div class="floating-label-group" style="position: relative;">
+          <input 
+            type="password" 
+            name="password" 
+            id="password" 
+            placeholder=" " 
+            required 
+            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{}|;:,.<>])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{}|;:,.<>]{8,}$"
+            title="At least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special symbol"
+          />
+          <label for="password">Strong Password</label>
+          <button 
+            type="button" 
+            id="togglePassword" 
+            style="position: absolute; right: 12px; top: 18px; background: none; border: none; color: #fff; cursor: pointer; font-size: 14px;"
+            tabindex="-1"
+          >
+            Show
+          </button>
         </div>
-        <button type="submit" class="btn-signup">Sign Up</button>
+
+        <!-- Live Password Strength Checklist -->
+        <div id="passwordChecklist" style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px; margin-bottom: 1.5rem; font-size: 0.82rem; color: #eee;">
+          <div style="font-weight: 600; margin-bottom: 6px; color: #00c6ff;">Password Requirements:</div>
+          <div id="rule-len" style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: #bbb;">
+            <span class="icon">✕</span> At least 8 characters
+          </div>
+          <div id="rule-case" style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: #bbb;">
+            <span class="icon">✕</span> Uppercase &amp; lowercase letters
+          </div>
+          <div id="rule-num" style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: #bbb;">
+            <span class="icon">✕</span> At least one number (0-9)
+          </div>
+          <div id="rule-sym" style="display: flex; align-items: center; gap: 6px; color: #bbb;">
+            <span class="icon">✕</span> At least one special symbol (@$!%*?&#)
+          </div>
+        </div>
+
+        <button type="submit" class="btn-signup" id="submitBtn">Create Account</button>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const toggleBtn = document.getElementById("togglePassword");
+    const emailFeedback = document.getElementById("emailFeedback");
+    const form = document.getElementById("signupForm");
+
+    const ruleLen = document.getElementById("rule-len");
+    const ruleCase = document.getElementById("rule-case");
+    const ruleNum = document.getElementById("rule-num");
+    const ruleSym = document.getElementById("rule-sym");
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{}|;:,.<>])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{}|;:,.<>]{8,}$/;
+
+    // Toggle password visibility
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          toggleBtn.textContent = "Hide";
+        } else {
+          passwordInput.type = "password";
+          toggleBtn.textContent = "Show";
+        }
+      });
+    }
+
+    // Real-time password verification
+    if (passwordInput) {
+      passwordInput.addEventListener("input", function () {
+        const val = passwordInput.value;
+        const hasLen = val.length >= 8;
+        const hasUpper = /[A-Z]/.test(val);
+        const hasLower = /[a-z]/.test(val);
+        const hasNum = /\d/.test(val);
+        const hasSym = /[@$!%*?&#^()_+\-=\[\]{}|;:,.<>]/.test(val);
+
+        updateRule(ruleLen, hasLen);
+        updateRule(ruleCase, hasUpper && hasLower);
+        updateRule(ruleNum, hasNum);
+        updateRule(ruleSym, hasSym);
+      });
+    }
+
+    function updateRule(element, isValid) {
+      if (!element) return;
+      if (isValid) {
+        element.style.color = "#48bb78";
+        element.querySelector(".icon").textContent = "✓";
+      } else {
+        element.style.color = "#bbb";
+        element.querySelector(".icon").textContent = "✕";
+      }
+    }
+
+    // Email live check
+    if (emailInput) {
+      emailInput.addEventListener("input", function () {
+        if (emailInput.value && !emailRegex.test(emailInput.value.trim())) {
+          emailFeedback.style.display = "block";
+        } else {
+          emailFeedback.style.display = "none";
+        }
+      });
+    }
+
+    // Prevent submission if invalid
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        let valid = true;
+        if (!emailRegex.test(emailInput.value.trim())) {
+          emailFeedback.style.display = "block";
+          valid = false;
+        }
+        if (!strongPasswordRegex.test(passwordInput.value)) {
+          valid = false;
+          alert("Please satisfy all strong password requirements before submitting.");
+        }
+        if (!valid) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+    }
+  })();
+</script>

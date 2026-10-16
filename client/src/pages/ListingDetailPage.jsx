@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Globe, 
-  Star, 
-  Share2, 
-  Heart, 
-  Edit3, 
-  Trash2, 
-  UserCheck, 
-  ShieldCheck, 
-  Calendar 
+import {
+  ArrowLeft,
+  MapPin,
+  Globe,
+  Star,
+  Share2,
+  Heart,
+  Edit3,
+  Trash2,
+  UserCheck,
+  ShieldCheck,
+  Calendar
 } from "lucide-react";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -356,23 +356,23 @@ export default function ListingDetailPage({ listingId, onBack, onEdit, onDeleted
         }
 
         /* Gallery */
-        .sh-detail-gallery {
-          width: 100%;
-          border-radius: var(--sh-radius-xl);
-          overflow: hidden;
-          background: #EAEAEA;
-          max-height: 520px;
-          box-shadow: var(--sh-shadow-card);
-          margin-bottom: 36px;
-        }
+       
+.sh-detail-gallery {
+  width: 70%;
+  max-width: 800px;
+  border-radius: var(--sh-radius-xl);
+  overflow: hidden;
+  background: #EAEAEA;
+  box-shadow: var(--sh-shadow-card);
+  margin: 0 auto 36px;
+}
 
-        .sh-gallery-main {
-          width: 100%;
-          height: 100%;
-          max-height: 520px;
-          object-fit: cover;
-          display: block;
-        }
+.sh-gallery-main {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  display: block;
+}
 
         /* Layout */
         .sh-detail-body {

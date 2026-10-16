@@ -13,13 +13,26 @@ router.route("/signup")
 
 
 
+const resolveUsername = wrapAsync(async (req, res, next) => {
+    if (req.body.username && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.username.trim())) {
+        const userByEmail = await User.findOne({
+            email: new RegExp("^" + req.body.username.trim().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i")
+        });
+        if (userByEmail) {
+            req.body.username = userByEmail.username;
+        }
+    }
+    next();
+});
+
 router.route("/login")
     .get( usercontroller.renderloginForm)
     .post(
          saveRedirectUrl,
+         resolveUsername,
         passport.authenticate("local", { failureRedirect: "/login", failureFlash: true }),
         usercontroller.login
-    )
+    );
 
 router.get("/logout", usercontroller.logout);
 

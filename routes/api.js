@@ -47,29 +47,54 @@ router.get("/auth/current-user", (req, res) => {
   res.json({ success: true, user: null });
 });
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{}|;:,.<>])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{}|;:,.<>]{8,}$/;
+
 // Login
-router.post("/auth/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) return next(err);
-    if (!user) {
+router.post("/auth/login", async (req, res, next) => {
+  try {
+    let { username, password } = req.body;
+    if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: (info && info.message) || "Invalid username or password",
+        message: "Username/email and password are required",
       });
     }
-    req.login(user, (loginErr) => {
-      if (loginErr) return next(loginErr);
-      return res.json({
-        success: true,
-        message: "Logged in successfully",
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-        },
+
+    // Support logging in with either username or email address
+    if (EMAIL_REGEX.test(username.trim())) {
+      const userByEmail = await User.findOne({
+        email: new RegExp("^" + username.trim().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i"),
       });
-    });
-  })(req, res, next);
+      if (userByEmail) {
+        req.body.username = userByEmail.username;
+      }
+    }
+
+    passport.authenticate("local", (err, user, info) => {
+      if (err) return next(err);
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: (info && info.message) || "Invalid credentials. Please verify your username and password.",
+        });
+      }
+      req.login(user, (loginErr) => {
+        if (loginErr) return next(loginErr);
+        return res.json({
+          success: true,
+          message: "Logged in successfully",
+          user: {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+          },
+        });
+      });
+    })(req, res, next);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Signup
@@ -80,14 +105,37 @@ router.post("/auth/signup", async (req, res, next) => {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+
+    // 1. Email ID Regular Expression Validation
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address (e.g. name@example.com)",
+      });
+    }
+
+    // 2. Strong Password Regular Expression Validation
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special symbol
+    if (!STRONG_PASSWORD_REGEX.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password is too weak. It must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character (@, $, !, %, *, ?, &, etc.).",
+      });
+    }
+
+    // Check if username or email already exists
     const existingUser = await User.findOne({
       $or: [
-        { username: new RegExp("^" + username + "$", "i") },
-        { email: new RegExp("^" + email + "$", "i") },
+        { username: new RegExp("^" + trimmedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i") },
+        { email: new RegExp("^" + trimmedEmail.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i") },
       ],
     });
 
     if (existingUser) {
+      // If user exists, authenticate their session
       req.login(existingUser, (err) => {
         if (err) return next(err);
         return res.json({
@@ -101,7 +149,7 @@ router.post("/auth/signup", async (req, res, next) => {
         });
       });
     } else {
-      const newUser = new User({ email, username });
+      const newUser = new User({ email: trimmedEmail, username: trimmedUsername });
       const registeredUser = await User.register(newUser, password);
       req.login(registeredUser, (err) => {
         if (err) return next(err);
@@ -214,14 +262,21 @@ router.get("/listings/:id", async (req, res) => {
 // Create new listing
 router.post("/listings", requireApiAuth, upload.single("listing[image]"), async (req, res) => {
   try {
-    const listingData = req.body.listing || {};
+    const raw = req.body.listing || {};
+    const title = raw.title || req.body["listing[title]"] || req.body.title;
+    const description = raw.description || req.body["listing[description]"] || req.body.description;
+    const price = raw.price || req.body["listing[price]"] || req.body.price;
+    const location = raw.location || req.body["listing[location]"] || req.body.location;
+    const country = raw.country || req.body["listing[country]"] || req.body.country || "India";
+    const category = raw.category || req.body["listing[category]"] || req.body.category || "Trending";
+    let features = raw.features || req.body["listing[features]"] || req.body.features;
 
     let geometry = { type: "Point", coordinates: [73.7898, 19.9975] }; // Default Nashik coords fallback
-    if (geocodingClient && listingData.location) {
+    if (geocodingClient && location) {
       try {
         const geoResponse = await geocodingClient
           .forwardGeocode({
-            query: `${listingData.location}, ${listingData.country || "India"}`,
+            query: `${location}, ${country}`,
             limit: 1,
           })
           .send();
@@ -246,7 +301,6 @@ router.post("/listings", requireApiAuth, upload.single("listing[image]"), async 
     }
 
     // Parse features if string
-    let features = listingData.features;
     if (typeof features === "string") {
       features = [features];
     } else if (!Array.isArray(features)) {
@@ -254,12 +308,12 @@ router.post("/listings", requireApiAuth, upload.single("listing[image]"), async 
     }
 
     const newListing = new Listing({
-      title: listingData.title,
-      description: listingData.description,
-      price: Number(listingData.price),
-      location: listingData.location,
-      country: listingData.country,
-      category: listingData.category || "Trending",
+      title: title,
+      description: description,
+      price: Number(price) || 0,
+      location: location,
+      country: country,
+      category: category,
       features: features,
       image: image,
       geometry: geometry,
@@ -291,20 +345,28 @@ router.put("/listings/:id", requireApiAuth, upload.single("listing[image]"), asy
       return res.status(403).json({ success: false, message: "Unauthorized: You do not own this listing" });
     }
 
-    const listingData = req.body.listing || {};
+    const raw = req.body.listing || {};
+    const title = raw.title || req.body["listing[title]"] || req.body.title || existingListing.title;
+    const description = raw.description || req.body["listing[description]"] || req.body.description || existingListing.description;
+    const rawPrice = raw.price || req.body["listing[price]"] || req.body.price;
+    const price = rawPrice !== undefined ? Number(rawPrice) : existingListing.price;
+    const location = raw.location || req.body["listing[location]"] || req.body.location || existingListing.location;
+    const country = raw.country || req.body["listing[country]"] || req.body.country || existingListing.country;
+    const category = raw.category || req.body["listing[category]"] || req.body.category || existingListing.category;
+    let features = raw.features || req.body["listing[features]"] || req.body.features;
+
     let updateFields = {
-      title: listingData.title,
-      description: listingData.description,
-      price: Number(listingData.price),
-      location: listingData.location,
-      country: listingData.country,
-      category: listingData.category,
+      title,
+      description,
+      price,
+      location,
+      country,
+      category,
     };
 
-    if (listingData.features) {
-      let features = listingData.features;
+    if (features !== undefined) {
       if (typeof features === "string") features = [features];
-      updateFields.features = features;
+      if (Array.isArray(features)) updateFields.features = features;
     }
 
     if (req.file) {
