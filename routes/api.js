@@ -135,16 +135,27 @@ router.post("/auth/logout", (req, res, next) => {
 router.get("/listings", async (req, res) => {
   try {
     const { category, search } = req.query;
-    let query = {};
+    let conditions = [];
 
     if (category && category !== "All") {
-      query.category = category;
+      conditions.push({ category: category });
     }
 
     if (search && search.trim() !== "") {
-      query.location = new RegExp(search.trim(), "i");
+      const escaped = search.trim().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      conditions.push({
+        $or: [
+          { title: searchRegex },
+          { location: searchRegex },
+          { country: searchRegex },
+          { description: searchRegex },
+          { category: searchRegex },
+        ],
+      });
     }
 
+    const query = conditions.length > 0 ? { $and: conditions } : {};
     const allListings = await Listing.find(query).sort({ _id: -1 });
     res.json({
       success: true,

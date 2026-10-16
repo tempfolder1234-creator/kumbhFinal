@@ -56,12 +56,22 @@ export default function Navbar({ onNavigate, currentView, searchQuery, setSearch
             <span className="sh-search-label">Anywhere</span>
             <input
               type="text"
-              placeholder="Search destination, Nashik..."
+              placeholder="Search destination, property, Nashik..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="sh-search-input"
             />
           </div>
+          {searchQuery && (
+            <button
+              type="button"
+              className="sh-search-clear-btn"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
           <button type="submit" className="sh-search-btn" aria-label="Search">
             <Search size={16} strokeWidth={2.5} />
           </button>
@@ -262,6 +272,26 @@ export default function Navbar({ onNavigate, currentView, searchQuery, setSearch
 
         .sh-search-input::placeholder {
           color: var(--sh-text-secondary);
+        }
+
+        .sh-search-clear-btn {
+          width: 22px;
+          height: 22px;
+          border-radius: var(--sh-radius-full);
+          background: #EAEAEA;
+          color: #717171;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 6px;
+          cursor: pointer;
+          transition: all var(--sh-transition-fast);
+          flex-shrink: 0;
+        }
+
+        .sh-search-clear-btn:hover {
+          background: #DDDDDD;
+          color: #222222;
         }
 
         .sh-search-btn {

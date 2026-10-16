@@ -8,8 +8,18 @@ const listings = require("../models/listing");
 
 
 router.post("/", wrapAsync(async(req, res) => {
-    const nameQuery = req.body.search || "";
-    const results = await listings.find({ location: new RegExp(nameQuery, "i") });
+    const nameQuery = (req.body.search || "").trim();
+    const escaped = nameQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    const searchRegex = new RegExp(escaped, "i");
+    const results = await listings.find({
+        $or: [
+            { title: searchRegex },
+            { location: searchRegex },
+            { country: searchRegex },
+            { description: searchRegex },
+            { category: searchRegex },
+        ]
+    });
     res.render("listings/search.ejs", { results });
 }));
 
