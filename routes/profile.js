@@ -25,7 +25,7 @@ router.get("/", isLoggedIn, async (req, res) => {
     const bookings = await Booking.find({ user: req.user._id }).populate("listing", "title");
   
 
-    res.render("../views/listings/profile.ejs", { user, listings, bookings });
+    res.render("listings/profile.ejs", { user, listings, bookings });
   } catch (err) {
     console.error("Profile Route Error:", err);
     req.flash("error", "Something went wrong");

@@ -9,7 +9,7 @@
         <% for(let listing of alisting){ %>
             <a href="/listings/<%= listing._id %>" class="card-link">
                 <div class="card col listing-card">
-                    <img class="card-img-top" src="<%= listing.image.url %>" alt="Card image cap" style=" height:
+                    <img class="card-img-top" src="<%= (listing.image && listing.image.url) ? listing.image.url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=60' %>" alt="Card image cap" style=" height:
                         18rem;">
                     <div class="card-body">
                         <p class="card-text-title">

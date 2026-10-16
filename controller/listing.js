@@ -10,7 +10,7 @@ const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
 module.exports.index = async (req, res) => {
     const allListing = await listings.find({});
-    res.render("../views/listings/index.ejs", { allListing });
+    res.render("listings/index.ejs", { allListing });
 }
 
 
@@ -24,9 +24,9 @@ module.exports.showsallListings = async (req, res) => {
     const listing = await listings.findById(id).populate({ path: "reviews", populate: { path: "author", } }).populate("owner");
     if (!listing) {
         req.flash("error", " Listing you are requested for does not exist");
-        res.render("/listings");
+        return res.redirect("/listings");
     }
-    res.render("../views/listings/show.ejs", { listing });
+    res.render("listings/show.ejs", { listing });
 }
 
 module.exports.rendereditForm = async (req, res) => {
@@ -34,12 +34,14 @@ module.exports.rendereditForm = async (req, res) => {
     const listing = await listings.findById(id);
     if (!listing) {
         req.flash("error", " Listing you are requested for does not exist");
-        res.render("/listings");
+        return res.redirect("/listings");
     }
 
-    let originalImageUrl = listing.image.url;
-    originalImageUrl = originalImageUrl.replace("/upload", "/uplaod/w_150,h_100");
-    res.render("../views/listings/edit.ejs", { listing, originalImageUrl });
+    let originalImageUrl = listing.image ? listing.image.url : "";
+    if (originalImageUrl) {
+        originalImageUrl = originalImageUrl.replace("/upload", "/upload/w_150,h_100");
+    }
+    res.render("listings/edit.ejs", { listing, originalImageUrl });
 }
 
 

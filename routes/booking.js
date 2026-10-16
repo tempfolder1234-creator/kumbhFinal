@@ -28,7 +28,7 @@ router.post("/:listingId", isLoggedIn, async (req, res) => {
     } catch (err) {
         console.error(err);
         req.flash("error", "Booking failed");
-        res.redirect("back");
+        res.redirect(req.get('Referrer') || "/listings");
     }
 });
 

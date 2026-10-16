@@ -8,17 +8,11 @@ const listings = require("../models/listing");
 
 
 
-router.get('/category/:category', async(req, res) => {
-    console.log(req.params); // Check if `req.params` contains the expected property
+router.get('/category/:category', wrapAsync(async(req, res) => {
     const category = req.params.category;
     const alisting = await listings.find({ category });
-    console.log(alisting);
-  
-   
-    res.render("../views/listings/category.ejs",{category,alisting});
-    
-    // res.send(`Category: ${category}`);
-  });
+    res.render("listings/category.ejs", { category, alisting });
+}));
 
 
 module.exports = router;

@@ -9,12 +9,10 @@ let { listingSchema } = require("./schema.js");
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
         req.session.redirectUrl = req.originalUrl;
-
         req.flash("error", "You must be logged in to access this page");
-        res.redirect("/login");
+        return res.redirect("/login");
     }
     next();
-
 }
 
 
@@ -37,19 +35,12 @@ module.exports.isOwner = async (req, res, next) => {
     let { id } = req.params;
     let Listing = await listings.findById(id);
 
-   
-    if (!Listing.owner._id.equals(res.locals.currUser._id)) {router.get('/:category', (req, res) => {
-        console.log('req.params:', req.params); // Should log { category: '<value>' }
-        res.send(`Category: ${req.params.category}`);
-    });
-
-    
-
-        req.flash("error", "You are not the Owner of listing");
-        return res.redirect(`/listings/${id}`);
-
+    if (!Listing) {
+        req.flash("error", "Listing does not exist");
+        return res.redirect("/listings");
     }
-    if(!Listing.owner._id){
+
+    if (!Listing.owner || !Listing.owner._id.equals(res.locals.currUser._id)) {
         req.flash("error", "You are not the Owner of listing");
         return res.redirect(`/listings/${id}`);
     }
@@ -61,6 +52,10 @@ module.exports.isReviewauthor = async (req, res, next) => {
 
     let { reviewId,id } = req.params;
     let review = await Review.findById(reviewId);  
+    if (!review) {
+        req.flash("error", "Review does not exist");
+        return res.redirect(`/listings/${id}`);
+    }
     if (!review.author.equals(res.locals.currUser._id)) {
         req.flash("error", "You are not the author of review");
         return res.redirect(`/listings/${id}`);

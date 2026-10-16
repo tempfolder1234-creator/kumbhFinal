@@ -256,7 +256,7 @@ router.put("/listings/:id", requireApiAuth, upload.single("listing[image]"), asy
       return res.status(404).json({ success: false, message: "Listing not found" });
     }
 
-    if (!existingListing.owner.equals(req.user._id)) {
+    if (!existingListing.owner || !existingListing.owner.equals(req.user._id)) {
       return res.status(403).json({ success: false, message: "Unauthorized: You do not own this listing" });
     }
 
@@ -304,7 +304,7 @@ router.delete("/listings/:id", requireApiAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: "Listing not found" });
     }
 
-    if (!listing.owner.equals(req.user._id)) {
+    if (!listing.owner || !listing.owner.equals(req.user._id)) {
       return res.status(403).json({ success: false, message: "Unauthorized: You do not own this listing" });
     }
 
@@ -359,7 +359,7 @@ router.delete("/listings/:id/reviews/:reviewId", requireApiAuth, async (req, res
       return res.status(404).json({ success: false, message: "Review not found" });
     }
 
-    if (!review.author.equals(req.user._id)) {
+    if (!review.author || !review.author.equals(req.user._id)) {
       return res.status(403).json({ success: false, message: "Unauthorized to delete this review" });
     }
 
@@ -415,7 +415,7 @@ router.delete("/bookings/:id", requireApiAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    if (!booking.user.equals(req.user._id)) {
+    if (!booking.user || !booking.user.equals(req.user._id)) {
       return res.status(403).json({ success: false, message: "Unauthorized to cancel this booking" });
     }
 

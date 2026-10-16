@@ -7,18 +7,11 @@ const listings = require("../models/listing");
 
 
 
-router.post("/",async(req,res)=>{
-    // console.log(req.query.search);
-    const nameQuery = req.body.search;
-    console.log(nameQuery);
-
- const results = await listings.find({ location: new RegExp(nameQuery, "i") });
- console.log(results);
-
-    res.render("../views/listings/search.ejs", { results });
-    // const alistings=await 
-
-});
+router.post("/", wrapAsync(async(req, res) => {
+    const nameQuery = req.body.search || "";
+    const results = await listings.find({ location: new RegExp(nameQuery, "i") });
+    res.render("listings/search.ejs", { results });
+}));
 
 
 
