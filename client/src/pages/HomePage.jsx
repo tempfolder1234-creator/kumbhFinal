@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import CategoryFilter from "../components/CategoryFilter";
 import ListingCard from "../components/ListingCard";
 import EmptyState from "../components/EmptyState";
@@ -11,25 +11,35 @@ export default function HomePage({ onSelectListing, searchQuery, setSearchQuery 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const reqIdRef = useRef(0);
 
   const loadListings = async (category = selectedCategory, search = searchQuery) => {
+    const currentReqId = ++reqIdRef.current;
     try {
       setLoading(true);
       setError("");
       const res = await api.getListings({ category, search });
-      if (res && res.success) {
+      if (currentReqId === reqIdRef.current && res && res.success) {
         setListings(res.listings || []);
       }
     } catch (err) {
-      console.error("Error loading listings:", err);
-      setError(err.message || "Failed to load listings");
+      if (currentReqId === reqIdRef.current) {
+        console.error("Error loading listings:", err);
+        setError(err.message || "Failed to load listings");
+      }
     } finally {
-      setLoading(false);
+      if (currentReqId === reqIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    loadListings(selectedCategory, searchQuery);
+    // Debounce search input by 200ms to eliminate network race conditions and UI flicker
+    const timer = setTimeout(() => {
+      loadListings(selectedCategory, searchQuery);
+    }, 200);
+    return () => clearTimeout(timer);
   }, [selectedCategory, searchQuery]);
 
   const handleReset = () => {

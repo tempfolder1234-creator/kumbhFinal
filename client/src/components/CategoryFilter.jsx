@@ -8,11 +8,15 @@ import {
   Sparkles, 
   TreePine, 
   Snowflake,
-  LayoutGrid
+  LayoutGrid,
+  Tent,
+  Hotel
 } from "lucide-react";
 
 const CATEGORIES = [
   { id: "All", label: "All Stays", icon: LayoutGrid },
+  { id: "Camps", label: "Camps", icon: Tent },
+  { id: "Stay", label: "Stays", icon: Hotel },
   { id: "Trending", label: "Trending", icon: Flame },
   { id: "Bed&Breakfast", label: "Bed & Breakfast", icon: Coffee },
   { id: "icons", label: "Icons", icon: Ticket },

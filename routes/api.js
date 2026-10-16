@@ -131,14 +131,15 @@ router.post("/auth/logout", (req, res, next) => {
 
 // ==================== LISTINGS ROUTES ====================
 
-// Get all listings (with optional category filter and location search)
+// Get all listings (with optional category filter, multi-field search, and intelligent fallback)
 router.get("/listings", async (req, res) => {
   try {
     const { category, search } = req.query;
     let conditions = [];
 
     if (category && category !== "All") {
-      conditions.push({ category: category });
+      const escapedCat = category.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+      conditions.push({ category: new RegExp(`^${escapedCat}$`, "i") });
     }
 
     if (search && search.trim() !== "") {
@@ -151,12 +152,31 @@ router.get("/listings", async (req, res) => {
           { country: searchRegex },
           { description: searchRegex },
           { category: searchRegex },
+          { features: searchRegex },
         ],
       });
     }
 
     const query = conditions.length > 0 ? { $and: conditions } : {};
-    const allListings = await Listing.find(query).sort({ _id: -1 });
+    let allListings = await Listing.find(query).sort({ _id: -1 });
+
+    // Fallback: If a category was specified alongside a search term and yielded 0 results,
+    // search across all categories so the user finds what they searched for
+    if (allListings.length === 0 && search && search.trim() !== "" && category && category !== "All") {
+      const escaped = search.trim().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      allListings = await Listing.find({
+        $or: [
+          { title: searchRegex },
+          { location: searchRegex },
+          { country: searchRegex },
+          { description: searchRegex },
+          { category: searchRegex },
+          { features: searchRegex },
+        ],
+      }).sort({ _id: -1 });
+    }
+
     res.json({
       success: true,
       count: allListings.length,

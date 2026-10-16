@@ -18,6 +18,7 @@ router.post("/", wrapAsync(async(req, res) => {
             { country: searchRegex },
             { description: searchRegex },
             { category: searchRegex },
+            { features: searchRegex },
         ]
     });
     res.render("listings/search.ejs", { results });
